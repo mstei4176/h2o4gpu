@@ -53,8 +53,10 @@ all: prep
 
 	# for pycharm
 	ln -sf $(thepwd)/build/lib/ch2o4gpu_cpu.so .
-	ln -sf $(thepwd)/build/lib/ch2o4gpu_gpu.so .
-
+	
+	if [ $(GPU) -eq 1 ]; then \
+		ln -sf $(thepwd)/build/lib/ch2o4gpu_gpu.so . ;\
+	fi
 
 install:
 	-cd ../.. && pip uninstall -y h2o4gpu
