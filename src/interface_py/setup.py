@@ -99,7 +99,7 @@ class BinaryDistribution(Distribution):
 
 # Read version
 about_info={}
-with open('{}./__about__.py'.format(os.path.dirname(os.path.abspath(__file__))) as f: exec(f.read(), about_info)
+with open('{}/__about__.py'.format(os.path.dirname(os.path.abspath(__file__)))) as f: exec(f.read(), about_info)
 
 swig_extra_compile_args = ["-std=c++11"]
 swig_extra_link_args = []

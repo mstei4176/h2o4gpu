@@ -1,5 +1,8 @@
-
-include ../config2.mk
+ifeq ($(GPU),1)
+include ../gpu/config2.mk
+else
+include ../cpu/config2.mk
+endif
 
 H2O4GPUROOT=../
 
@@ -52,15 +55,16 @@ ifeq ($(USENVTX),1)
 DFLAGS+=-DUSE_NVTX=1
 endif
 
-CUDFLAGS=$(DFLAGS) -DHAVECUDA -DCUDCHECKERR
-
 
 # 3. Set CUDA_HOME= path/to/CUDA/libraries/
+ifeq ($(GPU),1)
+CUDFLAGS=$(DFLAGS) -DHAVECUDA -DCUDCHECKERR
 ifndef CUDAHOME
 ifeq ($(shell uname -s), Darwin)
 CUDAHOME=/usr/local/cuda/lib/
 else
 CUDAHOME=/usr/local/cuda/lib64/
+endif
 endif
 endif
 

@@ -7,7 +7,7 @@ ROOT_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 $(info **<Makefile>**: $(ROOT_DIR))
 
 ##! by default GPU=1, for CPU set GPU=0
-GPU:=1
+export GPU=0
 
 SHELL := /bin/bash # force avoidance of dash as shell
 # TODO(jon): ensure CPU-only can compile (i.e. no nvcc, etc.)
@@ -24,6 +24,7 @@ MAJOR_MINOR=$(shell echo $(BASE_VERSION) | sed 's/.*\(^[0-9][0-9]*\.[0-9][0-9]*\
 
 # System specific stuff
 ifeq ($(GPU),1)
+$(info **** GPU set ***)
 include src/gpu/config2.mk
 else
 include src/cpu/config2.mk
@@ -87,7 +88,7 @@ help:
 	$(call inform, " -------- Build and Install ---------")
 	$(call inform, "make clean           Clean all build files.")
 	$(call inform, "make fullinstall     Clean everything then compile and install everything (with nccl in xgboost).")
-	$(call inform, "make fullbuild       Clean, Install Deps and Build the whole project.")
+	$(call inform, "make fullbuild       Clean Install Deps and Build the whole project.")
 	$(call inform, "make build           Just Build the whole project.")
 	$(call inform, " -------- Test ---------")
 	$(call inform, "make test            Run tests.")

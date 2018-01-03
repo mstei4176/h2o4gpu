@@ -4,6 +4,7 @@
 ##########################################################
 
 include ../Makefile_header.mk
+
 ROOT_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 $(info ** <Makefile> **: $(ROOT_DIR))
 ifeq ($(GPU),1)
@@ -15,12 +16,11 @@ endif
 SHELL := /bin/bash # force avoidance of dash as shell
 ifeq ($(GPU),1)
 include gpu/config2.mk
-else
-include cpu/config2.mk
-endif
-
 ifndef CUDA_HOME
 $(error CUDA_HOME is not set)
+endif
+else
+include cpu/config2.mk
 endif
 
 # Bulid directory
