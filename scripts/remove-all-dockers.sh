@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Delete all containers
 docker rm -f $(docker ps -a -q)
 # Delete all images

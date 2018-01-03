@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 for fil in `ls examples/py/*.ipynb examples/py/demos/*.ipynb`
 do

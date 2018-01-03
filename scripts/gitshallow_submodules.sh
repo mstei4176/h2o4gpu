@@ -1,5 +1,5 @@
 
-#!/bin/bash
+#!/usr/bin/env bash
 git submodule init
 for i in $(git submodule | awk '{print $2}'); do
     spath=$(git config -f .gitmodules --get submodule.$i.path)

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # apply sklearn
 bash ./scripts/apply_sklearn_pipinstall.sh

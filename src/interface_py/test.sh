@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 status=0
 for py in `find h2o4gpu -name "*.py" -type f`; do 

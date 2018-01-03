@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 rm -rf scikit-learn
 git submodule init
 git submodule update

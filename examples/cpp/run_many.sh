@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 L=100
 A=16
 V=0.2

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Note:  This run script is meant to be run inside the docker container.
 #

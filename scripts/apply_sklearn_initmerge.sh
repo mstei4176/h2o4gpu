@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # handle base __init__.py file appending
 rm -rf src/interface_py/h2o4gpu/__init__.py

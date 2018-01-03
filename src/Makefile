@@ -1,5 +1,23 @@
+##########################################################
+# src Makefile
+# this Makefile creates ARChive
+##########################################################
+
+include ../Makefile_header.mk
+ROOT_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+$(info ** <Makefile> **: $(ROOT_DIR))
+ifeq ($(GPU),1)
+$(info GPU used)
+else
+$(info CPU used)
+endif
+
 SHELL := /bin/bash # force avoidance of dash as shell
-include config2.mk
+ifeq ($(GPU),1)
+include gpu/config2.mk
+else
+include cpu/config2.mk
+endif
 
 ifndef CUDA_HOME
 $(error CUDA_HOME is not set)
@@ -60,9 +78,11 @@ ifeq ($(USENVTX),1)
 DFLAGS+=-DUSE_NVTX=1
 endif
 
+ifeq ($(CPU),1)
 CUDFLAGS=$(DFLAGS) -DHAVECUDA -DCUDCHECKERR -DCUDA_MAJOR=$(CUDA_MAJOR) -DCUDA_MINOR=$(CUDA_MINOR)
 ifeq ($(USENVTX),1)
 CUDFLAGS+=-I/usr/local/cuda/include
+endif
 endif
 
 CXXFLAGS=$(IFLAGS) $(OPTFLAG) $(HASH) -Wall -std=c++11 -fPIC $(LINKFLAGS) $(RINCLUDEHOME) $(DFLAGS)
@@ -78,11 +98,13 @@ OPENMP=-qopenmp
 NVCCEXTRA=-ccbin=icpc
 endif
 
+ifeq ($(GPU),1)
 # Assume installed nccl into $(CUDA_HOME) and moved libraries in lib to lib64
 CUXX=$(CUDA_HOME)/bin/nvcc --expt-relaxed-constexpr --expt-extended-lambda $(NVCCEXTRA) -L$(CUDA_HOME)/lib64 -I$(CUDA_HOME)/include -I$(CUB_HOME) -lineinfo
 CUFLAGS=$(IFLAGS) -std=c++11 $(OPTFLAG) $(HASH) -Xcompiler -fPIC -Xcompiler $(OPENMP) $(RINCLUDEHOME) $(CUDFLAGS)
 CUFLAGS += -DCUDA_MAJOR=$(CUDA_MAJOR) -DCUDA_MINOR=$(CUDA_MINOR) -lcublas -lcusolver -lcusparse $(NVCC_GENCODE)
 #-gencode arch=compute_20,code=sm_20
+endif
 
 # Load local (e.g. R) specific config
 include config.mk
