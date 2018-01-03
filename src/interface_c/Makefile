@@ -95,6 +95,7 @@ H2O4GPULIB=\
 	$(H2O4GPUROOT)/build/cpu/projector/projector_cgls.o \
 	$(H2O4GPUROOT)/build/cpu/elastic_net_ptr.o
 
+ifdef ($(GPU),1)
 CUH2O4GPULIB=\
     $(H2O4GPUROOT)/build/gpu/h2o4gpu_link.o \
 	$(H2O4GPUROOT)/build/gpu/h2o4gpuglm.o \
@@ -114,16 +115,24 @@ CUH2O4GPULIB=\
     $(H2O4GPUROOT)/build/gpu/data/matrix.o \
 	$(H2O4GPUROOT)/build/common/logger.o \
 	$(H2O4GPUROOT)/build/common/utils.o
-
+	
 # Python-required CUDA runtime library
 PYCUDART=$(CUDAHOME)/libcudart.so
-
 
 .PHONY: default all clean cpulib gpulib
 
 default: all
 
 all: cpulib gpulib ch2o4gpu_cpu ch2o4gpu_gpu h2o4gpu_c.o
+else
+.PHONY: default all clean cpulib
+
+default: all
+
+all: cpulib ch2o4gpu_cpu h2o4gpu_c.o
+endif
+
+
 
 cpulib:
 	$(MAKE) cpulib -C $(H2O4GPUROOT) IFLAGS=$(IFLAGS)
