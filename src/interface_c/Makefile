@@ -75,14 +75,22 @@ CULDFLAGS=-L$(CUDAHOME) -L/usr/local/lib $(CULDFLAGS_)
 SHARED=dylib
 else
 LDFLAGS=$(LINKFLAGS)
+ifeq ($(GPU),1)
 CULDFLAGS=-L$(CUDAHOME) -lcudart -lcudadevrt -lcublas -lcusolver -lcusparse -lcurand $(LINKFLAGS) $(DFLAGS)
+else
+CULDFLAGS=-lcublas -lcusolver -lcusparse -lcurand $(LINKFLAGS) $(DFLAGS)
+endif
 SHARED=so
 endif
 
 # C++ Flags
+ifeq ($(GPU),1)
 CXXFLAGS=$(IFLAGS) $(OPTFLAG) $(HASH) -I$(H2O4GPUROOT)/include -I$(CUDAHOME)/../include -std=c++11 -Wall -Wconversion -fPIC $(LINKFLAGS)  $(DFLAGS)
 ifeq ($(USENVTX),1)
 CXXFLAGS+=-I/usr/local/cuda/include/
+endif
+else
+CXXFLAGS=$(IFLAGS) $(OPTFLAG) $(HASH) -I$(H2O4GPUROOT)/include -std=c++11 -Wall -Wconversion -fPIC $(LINKFLAGS) $(DFLAGS)
 endif
 
 # H2O4GPU static libraries
@@ -95,7 +103,6 @@ H2O4GPULIB=\
 	$(H2O4GPUROOT)/build/cpu/projector/projector_cgls.o \
 	$(H2O4GPUROOT)/build/cpu/elastic_net_ptr.o
 
-ifdef ($(GPU),1)
 CUH2O4GPULIB=\
     $(H2O4GPUROOT)/build/gpu/h2o4gpu_link.o \
 	$(H2O4GPUROOT)/build/gpu/h2o4gpuglm.o \
@@ -115,8 +122,10 @@ CUH2O4GPULIB=\
     $(H2O4GPUROOT)/build/gpu/data/matrix.o \
 	$(H2O4GPUROOT)/build/common/logger.o \
 	$(H2O4GPUROOT)/build/common/utils.o
+
 	
 # Python-required CUDA runtime library
+ifeq ($(GPU),1)
 PYCUDART=$(CUDAHOME)/libcudart.so
 
 .PHONY: default all clean cpulib gpulib
