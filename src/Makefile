@@ -109,7 +109,6 @@ endif
 # Load local (e.g. R) specific config
 include config.mk
 
-ifeq ($(GPU),1)
 # H2O4GPU header files.
 H2O4GPU_HDR=\
 	include/interface_defs.h \
@@ -121,7 +120,7 @@ H2O4GPU_HDR=\
 	include/matrix/matrix_sparse.h \
 	include/projector/projector_cgls.h \
 	include/projector/projector_direct.h
-endif
+
 # CPU Specific headers and object files.
 GSL_HDR=\
 	cpu/include/gsl/cblas.h \
@@ -147,7 +146,7 @@ CPU_OBJ=$(OBJDIR)/cpu/h2o4gpuglm.o $(OBJDIR)/cpu/elastic_net_ptr.o $(OBJDIR)/cpu
 
 H2O4GPUKMEANS_HDR=
 
-
+ifeq ($(GPU),1)
 # GPU Specific headers and object files.
 CML_HDR=\
 	gpu/include/cml/cblas.h \
@@ -161,7 +160,6 @@ CML_HDR=\
 	gpu/include/cml/cml_utils.cuh \
 	gpu/include/cml/cml_vector.cuh
 
-ifeq ($(GPU),1)
 GPU_HDR=\
 	gpu/include/cgls.cuh \
 	gpu/include/equil_helper.cuh \
@@ -270,68 +268,69 @@ else
 config2:=cpu/config2.mk
 endif
 
-# H2O4GPU CPU objects
-$(OBJDIR)/cpu/h2o4gpu.o: cpu/h2o4gpuglm.cpp $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile $(config2)
-	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) -c -o $@
-	
 
-$(OBJDIR)/cpu/h2o4gpukmeans.o: cpu/h2o4gpukmeans.cpp $(H2O4GPUKMEANS_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile $(config2)
+# H2O4GPU CPU objects
+$(OBJDIR)/cpu/h2o4gpu.o: cpu/h2o4gpuglm.cpp $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile config2.mk
+	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) -c -o $@
+
+$(OBJDIR)/cpu/h2o4gpukmeans.o: cpu/h2o4gpukmeans.cpp $(H2O4GPUKMEANS_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile config2.mk
 	$(CXX) -Iinclude -I/usr/local/cuda/include -Icpu/include $< $(CXXFLAGS) -c -o $@
 
-$(OBJDIR)/cpu/matrix/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu/matrix Makefile $(config2)
-	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) $(IFLAGS) -c -o $@
-    
-$(OBJDIR)/cpu/projector/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu/projector Makefile $(config2)
+$(OBJDIR)/cpu/matrix/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu/matrix Makefile config2.mk
 	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) $(IFLAGS) -c -o $@
 
-$(OBJDIR)/cpu/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu Makefile $(config2)
+$(OBJDIR)/cpu/projector/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu/projector Makefile config2.mk
 	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) $(IFLAGS) -c -o $@
 
-$(OBJDIR)/cpu/elastic_net_ptr.o: common/elastic_net_ptr.cpp common/elastic_net_ptr.h $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/common Makefile $(config2)
+$(OBJDIR)/cpu/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu Makefile config2.mk
+	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) $(IFLAGS) -c -o $@
+
+$(OBJDIR)/cpu/elastic_net_ptr.o: common/elastic_net_ptr.cpp common/elastic_net_ptr.h $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/common Makefile config2.mk
 	$(CXX) -Iinclude -Icommon/include $< $(CXXFLAGS) -c -o $@
 
-ifeq ($(GPU),1)
+
 # H2O4GPU GPU objects
-$(OBJDIR)/gpu/h2o4gpu_link.o: $(GPU_OBJ) $(GPU_MTX_OBJ) $(GPU_PRJ_OBJ) | $(OBJDIR) Makefile $(config2)
+ifeq ($(GPU),1)
+$(OBJDIR)/gpu/h2o4gpu_link.o: $(GPU_OBJ) $(GPU_MTX_OBJ) $(GPU_PRJ_OBJ) | $(OBJDIR) Makefile gpu/config2.mk
 	$(CUXX) $(CUFLAGS) $^ -dlink -o $@
 
-$(OBJDIR)/gpu/h2o4gpu.o: gpu/h2o4gpuglm.cu $(H2O4GPU_HDR) $(CML_HDR) $(GSL_HDR) | $(OBJDIR)/gpu Makefile $(config2)
+$(OBJDIR)/gpu/h2o4gpu.o: gpu/h2o4gpuglm.cu $(H2O4GPU_HDR) $(CML_HDR) $(GSL_HDR) | $(OBJDIR)/gpu Makefile gpu/config2.mk
 	$(CUXX) -Iinclude -Igpu/include -Icpu/include $< $(CUFLAGS) -dc -o $@
 
-$(OBJDIR)/gpu/warmstart.o: gpu/warmstart.cu $(H2O4GPU_HDR) $(CML_HDR) | $(OBJDIR)/gpu Makefile $(config2)
+$(OBJDIR)/gpu/warmstart.o: gpu/warmstart.cu $(H2O4GPU_HDR) $(CML_HDR) | $(OBJDIR)/gpu Makefile gpu/config2.mk
 	$(CUXX) -Iinclude -Igpu/include $< $(CUFLAGS) -dc -o $@
-$(OBJDIR)/gpu/p2pbwcheck.o: gpu/p2pbwcheck.cu $(H2O4GPU_HDR) $(CML_HDR) | $(OBJDIR)/gpu Makefile $(config2)
+$(OBJDIR)/gpu/p2pbwcheck.o: gpu/p2pbwcheck.cu $(H2O4GPU_HDR) $(CML_HDR) | $(OBJDIR)/gpu Makefile gpu/config2.mk
 	$(CUXX) -Iinclude -Igpu/include $< $(CUFLAGS) -dc -o $@
-$(OBJDIR)/gpu/bwcheck.o: gpu/bwcheck.cu $(H2O4GPU_HDR) $(CML_HDR) | $(OBJDIR)/gpu Makefile $(config2)
+$(OBJDIR)/gpu/bwcheck.o: gpu/bwcheck.cu $(H2O4GPU_HDR) $(CML_HDR) | $(OBJDIR)/gpu Makefile gpu/config2.mk
 	$(CUXX) -Iinclude -Igpu/include $< $(CUFLAGS) -dc -o $@
-$(OBJDIR)/gpu/utils.o: gpu/utils.cu $(H2O4GPU_HDR) $(CML_HDR) | $(OBJDIR)/gpu Makefile $(config2)
+$(OBJDIR)/gpu/utils.o: gpu/utils.cu $(H2O4GPU_HDR) $(CML_HDR) | $(OBJDIR)/gpu Makefile gpu/config2.mk
 	$(CUXX) -Iinclude -Igpu/include $< $(CUFLAGS) -dc -o $@
 
-$(OBJDIR)/gpu/matrix/%.o: %.cu $(GPU_HDR) | $(OBJDIR)/gpu/matrix Makefile gpu/$(config2)
+$(OBJDIR)/gpu/matrix/%.o: %.cu $(GPU_HDR) | $(OBJDIR)/gpu/matrix Makefile gpu/config2.mk
 	$(CUXX) -Iinclude -Igpu/include $< $(CUFLAGS) $(IFLAGS) -dc -o $@
 
-$(OBJDIR)/gpu/projector/%.o: %.cu $(GPU_HDR) | $(OBJDIR)/gpu/projector Makefile $(config2)
+$(OBJDIR)/gpu/projector/%.o: %.cu $(GPU_HDR) | $(OBJDIR)/gpu/projector Makefile gpu/config2.mk
 	$(CUXX) -Iinclude -Igpu/include $< $(CUFLAGS) $(IFLAGS) -dc -o $@
 
-$(OBJDIR)/gpu/%.o: %.cu $(GPU_HDR) | $(OBJDIR)/gpu gpu/Makefile $(config2) $(OBJDIR)/gpu/tsvd $(OBJDIR)/gpu/pca $(OBJDIR)/gpu/data
+$(OBJDIR)/gpu/%.o: %.cu $(GPU_HDR) | $(OBJDIR)/gpu Makefile gpu/config2.mk $(OBJDIR)/gpu/tsvd $(OBJDIR)/gpu/pca $(OBJDIR)/gpu/data
 	$(CUXX) -Iinclude -Igpu/include $< $(CUFLAGS) $(IFLAGS) -dc -o $@
 
 $(OBJDIR)/gpu/kmeans/*.o: gpu/kmeans/*.cu $(GPU_KMEANS_HDR) | $(OBJDIR)/gpu/kmeans
 	$(CUXX) -Igpu/include $< $(CUFLAGS) $(IFLAGS) -dc -o $@
 
-$(OBJDIR)/gpu/kmeans/kmeans_h2o4gpu.o: gpu/kmeans/kmeans_h2o4gpu.cu $(GPU_KMEANS_HDR) | $(OBJDIR)/gpu/kmeans Makefile $(config2)
+$(OBJDIR)/gpu/kmeans/kmeans_h2o4gpu.o: gpu/kmeans/kmeans_h2o4gpu.cu $(GPU_KMEANS_HDR) | $(OBJDIR)/gpu/kmeans Makefile gpu/config2.mk
 	$(CUXX) -Iinclude -Igpu/include $< $(CUFLAGS) -dc -o $@
 
-$(OBJDIR)/gpu/elastic_net_ptr.o: common/elastic_net_ptr.cpp common/elastic_net_ptr.h $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/common Makefile $(config2)
+$(OBJDIR)/gpu/elastic_net_ptr.o: common/elastic_net_ptr.cpp common/elastic_net_ptr.h $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/common Makefile gpu/config2.mk
 	$(CXX) $(CXXFLAGS) $(CUDFLAGS)  -L$(CUDA_HOME)/lib64 -I$(CUDA_HOME)/include -Iinclude -Icommon/include $< $(CXXFLAGS) $(CUDFLAGS) -c -o $@
 
-$(OBJDIR)/common/utils.o: common/utils.cpp common/utils.h $(GSL_HDR) | $(OBJDIR)/common Makefile $(config2)
+$(OBJDIR)/common/utils.o: common/utils.cpp common/utils.h $(GSL_HDR) | $(OBJDIR)/common Makefile gpu/config2.mk
 	$(CXX) $(CXXFLAGS) -Iinclude -Icpu/include $< -c $(CXXFLAGS) -o $@
 
-$(OBJDIR)/cpu/h2o4gpu.o: cpu/h2o4gpuglm.cpp $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile $(config2)
+$(OBJDIR)/cpu/h2o4gpu.o: cpu/h2o4gpuglm.cpp $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile gpu/config2.mk
 	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) -c -o $@
 
-$(OBJDIR)/cpu/h2o4gpukmeans.o: cpu/h2o4gpukmeans.cpp $(H2O4GPUKMEANS_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile $(config2)
+$(OBJDIR)/cpu/h2o4gpukmeans.o: cpu/h2o4gpukmeans.cpp $(H2O4GPUKMEANS_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile gpu/config2.mk
 	$(CXX) -Iinclude -I/usr/local/cuda/include -Icpu/include $< $(CXXFLAGS) -c -o $@
 
 $(OBJDIR)/cpu/matrix/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu/matrix Makefile gpu/config2.mk
@@ -346,26 +345,25 @@ $(OBJDIR)/cpu/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu Makefile gpu/config2.mk
 $(OBJDIR)/common/logger.o: common/logger.cpp common/logger.h | $(OBJDIR)/common Makefile gpu/config2.mk
 	$(CXX) $(CXXFLAGS) $< -c $(CXXFLAGS) -o $@
 else
-$(OBJDIR)/common/utils.o: common/utils.cpp common/utils.h $(GSL_HDR) | $(OBJDIR)/common Makefile $(config2)
+$(OBJDIR)/common/utils.o: common/utils.cpp common/utils.h $(GSL_HDR) | $(OBJDIR)/common Makefile cpu/config2.mk
 	$(CXX) $(CXXFLAGS) -Iinclude -Icpu/include $< -c $(CXXFLAGS) -o $@
-
-
-$(OBJDIR)/cpu/h2o4gpu.o: cpu/h2o4gpuglm.cpp $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile $(config2)
+	
+$(OBJDIR)/cpu/h2o4gpu.o: cpu/h2o4gpuglm.cpp $(H2O4GPU_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile cpu/config2.mk
 	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) -c -o $@
 
-$(OBJDIR)/cpu/h2o4gpukmeans.o: cpu/h2o4gpukmeans.cpp $(H2O4GPUKMEANS_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile $(config2)
+$(OBJDIR)/cpu/h2o4gpukmeans.o: cpu/h2o4gpukmeans.cpp $(H2O4GPUKMEANS_HDR) $(GSL_HDR) | $(OBJDIR)/cpu Makefile cpu/config2.mk
 	$(CXX) -Iinclude -I/usr/local/cuda/include -Icpu/include $< $(CXXFLAGS) -c -o $@
 
-$(OBJDIR)/cpu/matrix/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu/matrix Makefile $(config2)
+$(OBJDIR)/cpu/matrix/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu/matrix Makefile cpu/config2.mk
 	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) $(IFLAGS) -c -o $@
 
-$(OBJDIR)/cpu/projector/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu/projector Makefile $(config2)
+$(OBJDIR)/cpu/projector/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu/projector Makefile cpu/config2.mk
 	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) $(IFLAGS) -c -o $@
 
-$(OBJDIR)/cpu/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu Makefile $(config2)
+$(OBJDIR)/cpu/%.o: %.cpp $(CPU_HDR) | $(OBJDIR)/cpu Makefile cpu/config2.mk
 	$(CXX) -Iinclude -Icpu/include $< $(CXXFLAGS) $(IFLAGS) -c -o $@
 
-$(OBJDIR)/common/logger.o: common/logger.cpp common/logger.h | $(OBJDIR)/common Makefile $(config2)
+$(OBJDIR)/common/logger.o: common/logger.cpp common/logger.h | $(OBJDIR)/common Makefile cpu/config2.mk
 	$(CXX) $(CXXFLAGS) $< -c $(CXXFLAGS) -o $@
 endif
 

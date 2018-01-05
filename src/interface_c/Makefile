@@ -115,7 +115,13 @@ CUH2O4GPULIB=\
     $(H2O4GPUROOT)/build/gpu/data/matrix.o \
 	$(H2O4GPUROOT)/build/common/logger.o \
 	$(H2O4GPUROOT)/build/common/utils.o
-	
+else
+	CUH2O4GPULIB=\
+	$(H2O4GPUROOT)/build/common/logger.o \
+	$(H2O4GPUROOT)/build/common/utils.o
+endif
+
+ifdef ($(GPU),1)
 # Python-required CUDA runtime library
 PYCUDART=$(CUDAHOME)/libcudart.so
 
