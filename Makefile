@@ -443,12 +443,13 @@ libsklearn:	# assume already submodule gets sklearn
 apply_sklearn: libsklearn apply_sklearn_simple
 
 apply_sklearn_simple:
-    #	bash ./scripts/apply_sklearn.sh
-    ## apply sklearn
+	#bash ./scripts/prepare_sklearn.sh
+	#	bash ./scripts/apply_sklearn.sh
+	## apply sklearn
 	bash ./scripts/apply_sklearn_pipinstall.sh
-    ## link-up recursively
+	## link-up recursively
 	bash ./scripts/apply_sklearn_link.sh
-    # handle base __init__.py file appending
+	# handle base __init__.py file appending
 	bash ./scripts/apply_sklearn_initmerge.sh
 
 apply_sklearn_pipinstall:
@@ -700,6 +701,13 @@ centos7_in_docker:
 	mkdir dist
 	docker build -t opsh2oai/h2o4gpu-build-centos7 -f Dockerfile-build-centos7 .
 	docker run --init --rm -v `pwd`:/dot -w /dot --entrypoint /bin/bash opsh2oai/h2o4gpu-build-centos7 -c 'make centos7'
+
+centos7_ppc64le:
+	rm -fr dist
+	mkdir dist
+	docker build -t opsh2oai/h2o4gpu-build-centos7 -f Dockerfile-build-centos7-ppc64le .
+	nvidia-docker run --init --rm -v `pwd`:/dot -w /dot --entrypoint /bin/bash opsh2oai/h2o4gpu-build-centos7 -c 'make libsklearn build'
+
 
 #----------------------------------------------------------------------
 # CentOS 7 build API END
